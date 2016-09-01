@@ -1,3 +1,0 @@
-[console_scripts]
-ryu-cli = ryucli.ryu_cli:main
-
