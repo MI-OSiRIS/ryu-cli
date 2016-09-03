@@ -5,17 +5,16 @@ Usage:
 push_flows [<flow_file> <url> <user> <password>]
 '''
 
-from odl.instance import ODLInstance
-from odl.topology import ODLTopology
-from odl.node import ODLNode
+from ryu_models.instance import RYUInstance
+from ryu_models.node import RYUNode
 from docopt import docopt
 import json
 
 if __name__ == '__main__':
-    args = docopt(__doc__, version='odl-client 0.1')
+    args = docopt(__doc__, version='ryu-client 0.1')
     url = args.get("<url>")
     if not url:
-        url = "http://localhost:8181"
+        url = "http://localhost:8080"
         
     user = args.get("<user>")
     if not user:
@@ -34,15 +33,18 @@ User  : %s
 Passwd: %s\n""" % (ffile, url, user, "*****" if pw != "admin" else pw)
     print info
     
+    assert ffile is not None, "Must specify input file"
+
     try:
         f = open(ffile, 'r')
         fstr = f.read()
         flows = json.loads(fstr)
     except Exception, e:
         print "Error: %s" % e
-        
-    odl = ODLInstance(url, (user, pw))
-    nodes = odl.get_nodes()
+        exit(1)
+
+    ryu = RYUInstance(url, (user, pw))
+    nodes = ryu.get_nodes()
     for flow in flows:
         sw = flow['switch']
         tid = flow['flow']['table_id']
