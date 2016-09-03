@@ -30,20 +30,29 @@ class RYUPort(object):
         self.index = ind
         self.port = port
         self.node = node
+        self.stats = {}
 
     def __repr__(self):
         return "<RYUPort: %s>" % self.id
 
     def to_dict(self):
         base = {self.id: {
-                'status': self.status,
-                'port_number': self.port_number,
-                'hardware_address': self.hardware_address,
-                'addresses': self.get_addresses(),
-                'configuration': self.configuration,
-                'name': self.name}}
+            'status': self.status,
+            'port_number': self.port_number,
+            'hardware_address': self.hardware_address,
+            'addresses': self.get_addresses(),
+            'configuration': self.configuration,
+            'name': self.name,
+            'curr_speed': self.curr_speed,
+            'stats': self.stats}}
 
         return base
+
+    def update(self):
+        self.stats = self.node.ryu_instance.get("/stats/port/"+str(self.node.id)+"/"+str(self.id))
+
+    def get_port_stats(self):
+        return self.stats
 
     @property
     def id(self):
@@ -67,6 +76,10 @@ class RYUPort(object):
     @property
     def name(self):
         return self.port['name']
+
+    @property
+    def curr_speed(self):
+        return self.port['curr_speed']
 
     @property
     def configuration(self):

@@ -33,6 +33,8 @@ class RYUNode(object):
     def __init__(self, ind, json, ryu_instance):
         self.index = ind
         self.json = json
+        self.tables = {}
+        self.ports = {}
         self.ryu_instance = ryu_instance
 
     def __repr__(self):
@@ -95,16 +97,28 @@ class RYUNode(object):
 
         return base
 
+    def update(self):
+        """
+        Update this Node's tables and ports
+        """
+        tables = self.ryu_instance.get("/stats/table/"+self.id)
+        for table in tables.values()[0]:
+            obj = RYUTable(None, table, self)
+            obj.update()
+            self.tables[obj.id] = obj
+
+        ports = self.ryu_instance.get("/stats/portdesc/"+self.id)
+        ind = 0
+        for port in ports.values()[0]:
+            obj = RYUPort(ind, port, self)
+            self.ports[obj.id] = obj
+            ind += 1
+
     def get_tables(self):
         """
         Return a dict with all tables of this node.
         """
-        tables = self.ryu_instance.get("/stats/table/"+self.id)
-        result = {}
-        for table in tables.values()[0]:
-            obj = RYUTable(None, table, self)
-            result[obj.id] = obj
-        return result
+        return self.tables
 
     def get_table_by_id(self, id):
         """
@@ -120,19 +134,7 @@ class RYUNode(object):
         """
         Return a dict with all ports of this node.
         """
-        try:
-            ports = self.ryu_instance.get("/stats/portdesc/"+self.id)
-        except KeyError:
-            print "Error, switch without ports"
-            print self.id, self.description, self.ip_address
-            return {}
-        result = {}
-        ind = 0
-        for port in ports.values()[0]:
-            obj = RYUPort(ind, port, self)
-            result[obj.id] = obj
-            ind += 1
-        return result
+        return self.ports
 
     def get_port_by_id(self, id):
         """
@@ -145,17 +147,14 @@ class RYUNode(object):
             raise PortNotFound("Port %s not found" % id)
 
     def clear_flows(self):
-        pass
+        """
+        Delete all flows in this datapath 
+        """
+        endpoint = '/stats/flowentry/clear'+node.id
+        return ryu_instance.delete(endpoint,
+                                   content="application/json")
 
-    def delete_config_flows_by_name(self, name):
-        """
-        Return a list of config flows based on name.
-        """
-        tables = self.get_tables()
-        for table in tables.values():
-            flows = table.get_config_flows_by_name(name)
-            for flow in flows:
-                flow.delete()
+        pass
 
     def add_flow(self, flow):
         pass

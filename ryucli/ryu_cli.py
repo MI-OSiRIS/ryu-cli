@@ -117,6 +117,7 @@ class RYUCmd(cmd.Cmd):
         '''Get all or a specific node from Ryu OFCTL
         get_nodes [node]'''
         try:
+            self.ryu.update()
             nodes = self.ryu.get_nodes()
             self.config = nodes
             self._set_cwc()
@@ -141,27 +142,26 @@ class RYUCmd(cmd.Cmd):
         if fid == "*":
             yn = self.util.query_yes_no("Delete ALL flows in table %s" % (table))
             if yn:
-                flows = self.tables[int(table)].get_config_flows()
-                for f in flows.values():
-                    try:
-                        f.delete()
-                    except Exception as e:
-                        print "Error deleting flow: %s" % e
+                try:
+                    self.tables[int(table)].delete_flows()
+                    self.tables[int(table)].update()
+                except Exception as e:
+                    print "Error deleting flows from table: %s" % e
+                    return
             else:
                 return
         else:
             yn = self.util.query_yes_no("Delete flow %s in table %s" % (fid, table))
             if yn:
                 try:
-                    flows = self.tables[int(table)].get_config_flows()
-                    flows[fid].delete()
+                    flow = self.tables[int(table)].get_flows_by_id(fid)
+                    flow.delete()
+                    self.tables[int(table)].update()
                 except Exception as e:
                     print "Error deleting flow: %s" % e
+                    return
             else:
                 return
-
-        self.do_update(None)
-        self.do_get_nodes(None)
 
     def complete_del_flow(self, text, l, b, e):
         return [ x[b-9:] for x,y in self.cwc.iteritems() if x.startswith(l[9:]) ]
@@ -218,7 +218,8 @@ class RYUCmd(cmd.Cmd):
         self.do_get_nodes(None)
 
     def do_update(self, args):
-        self.ryu.update()
+        # TODO: track current object to perform selective update
+        pass
         
     def do_EOF(self, line):
         return True

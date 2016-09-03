@@ -35,7 +35,8 @@ class RYUInstance(object):
         self.server = server
         self.credentials = credentials
         self.headers = { 'Content-type' : 'application/json' }
-        self.update()
+        self.json = {}
+        self.nodes = {}
 
     def to_dict(self):
         # All switches nodes in dict format
@@ -109,8 +110,14 @@ class RYUInstance(object):
         """
         response = self.request(method = "POST",
                                 endpoint = self.server + endpoint,
+                                data = data,
                                 auth = self.credentials)
-        return response.json()
+        ret = None
+        try:
+            ret = response.json()
+        except:
+            pass
+        return ret
     
     def put(self, endpoint, data, content="application/json"):
         """
@@ -131,24 +138,22 @@ class RYUInstance(object):
                                 auth = self.credentials)
 
     def update(self):
-        self.json = []
         endpoint = "/stats/switches"
         try:
-            nodes = self.get(endpoint)
-            for n in nodes:
-                sw = self.get("/stats/desc/"+str(n))
-                self.json.append(sw)
+            switches = self.get(endpoint)
+            for s in switches:
+                sw = self.get("/stats/desc/"+str(s))
+                self.json.update(sw)
+                node = RYUNode(sw.keys()[0],
+                               sw.values()[0], self)
+                node.update()
+                self.nodes[node.id] = node
         except RYU404:
             self.json = {}
 
     def get_nodes(self):
-        nodes = self.json
-        result = {}
-        for node in nodes:
-            obj = RYUNode(node.keys()[0],
-                          node.values()[0], self)
-            result[obj.id] = obj
-        return result
+        self.update()
+        return self.nodes
 
     def get_node_by_id(self, id):
         nodes = self.get_nodes()

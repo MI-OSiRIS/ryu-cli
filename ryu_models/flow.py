@@ -127,15 +127,7 @@ class RYUFlow(object):
             actions = self.json['actions']
         except KeyError as e:
             actions = []
-
-        result = []
-        for action in actions:
-            parts = action.split(':')
-            if len(parts) > 1 and parts[0] == 'OUTPUT':
-                result.append({'action': parts[0],
-                               'value': parts[1]})
-
-        return result
+        return actions
 
     def to_dict(self):
         base = {self.id: {'priority': self.priority,
@@ -147,6 +139,7 @@ class RYUFlow(object):
                           'node_id': self.table.node.id,
                           'table_id': self.table.id,
                           'clean_id': self.clean_id,
+                          'match': self._get_match(),
                           'ethernet_match': {'type': self.get_ethernet_type(),
                                              'source': self.get_ethernet_source(),
                                              'destination': self.get_ethernet_destination()},
@@ -197,13 +190,15 @@ class RYUFlow(object):
 
     def delete(self):
         """
-        Delete a flow from config endpoint.
+        Delete a specific flow
         """
         ryu_instance = self.table.node.ryu_instance
-        endpoint = self.table.config_endpoint + 'flow/' + self.id
-
+        endpoint = '/stats/flowentry/delete_strict'
+        data = json.dumps(self.json)
         try:
-            ryu_instance.delete(endpoint)
+            ryu_instance.post(endpoint,
+                              data=data,
+                              content="application/json")
         except RYU404:
-            raise FlowNotFound("Flow id %s not found" % self.id)
+            raise FlowNotFound("Flow %s not found" % self.id)
 
