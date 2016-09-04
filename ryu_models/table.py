@@ -120,9 +120,9 @@ class RYUTable(object):
         """
         ryu_instance = self.node.ryu_instance
         endpoint = '/stats/flowentry/add'
-        return ryu_instance.put(endpoint,
-                                data=data,
-                                content="application/json")
+        return ryu_instance.post(endpoint,
+                                 data=data,
+                                 content="application/json")
 
     def put_flow_from_data(self, data, flow):
         """

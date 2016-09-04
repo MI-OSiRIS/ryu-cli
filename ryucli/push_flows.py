@@ -49,6 +49,7 @@ Passwd: %s\n""" % (ffile, url, user, "*****" if pw != "admin" else pw)
         sw = flow['switch']
         tid = flow['flow']['table_id']
         tables = nodes[sw].get_tables()
-        tables[tid].put_flow_from_data_json(json.dumps({"flow": flow['flow']}), flow['id'])
+	print "Adding flow: %s" % flow['id']
+        tables[tid].post_flow_from_data(json.dumps(flow['flow']), flow['id'])
     f.close()
     
