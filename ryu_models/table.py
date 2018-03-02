@@ -162,7 +162,6 @@ class RYUTable(object):
         endpoint = '/stats/flowentry/delete'
         data = json.dumps({'dpid': self.node.id,
                            'table_id': self.id})
-        print data
         return ryu_instance.post(endpoint,
                                  data=data,
                                  content="application/json")

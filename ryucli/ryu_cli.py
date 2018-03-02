@@ -17,7 +17,7 @@ import shlex
 import pprint
 import socket
 import requests
-from util import Util, col
+from ryucli.util import Util, col
 
 class ConfigurationError(Exception):
     def __init__(self, num, key, dir_list):
@@ -55,7 +55,7 @@ class RYUCmd(cmd.Cmd):
         try:
             cwc, new_wd_list = self._conf_for_list(new_wd_list)
         except ConfigurationError as e:
-            print col.FAIL + str(e) + col.ENDC
+            print (col.FAIL + str(e) + col.ENDC)
             return
         self.cwd_list = new_wd_list
         self.cwc = cwc
@@ -71,7 +71,7 @@ class RYUCmd(cmd.Cmd):
             try:
                 conf = conf[key]
             except KeyError:
-                print "No such key %s" % key
+                print ("No such key %s" % key)
                 return
 
         try:
@@ -81,14 +81,14 @@ class RYUCmd(cmd.Cmd):
                         hostname = socket.gethostbyaddr(v.ip_address)[0]
                     except:
                         hostname = v.ip_address
-                    print col.DIR + k + col.ENDC + ": (\"%s\", \"%s\", \"%s\")" % \
-                        (v.description, v.hardware, v.manufacturer)
+                    print (col.DIR + k + col.ENDC + ": (\"%s\", \"%s\", \"%s\")" % \
+                        (v.description, v.hardware, v.manufacturer))
                 elif isinstance(v, dict) or isinstance(v, list):
-                    print col.DIR + k + col.ENDC
+                    print (col.DIR + k + col.ENDC)
                 else:
-                    print "%s: %s" % (k, v)
+                    print ("%s: %s" % (k, v))
         except:
-            print "%s" % conf
+            print ("%s" % conf)
 
     def complete_ls(self, text, l, b, e):
         return [ x[b-3:] for x,y in self.cwc.iteritems() if x.startswith(l[3:]) ]
@@ -101,7 +101,7 @@ class RYUCmd(cmd.Cmd):
             try:
                 conf = conf[key]
             except KeyError:
-                print "No such key %s" % key
+                print ("No such key %s" % key)
         self.pp.pprint(conf)
 
     def complete_lsd(self, text, l, b, e):
@@ -111,7 +111,7 @@ class RYUCmd(cmd.Cmd):
     def do_pwd(self, key):
         '''Show current path in config separated by slashes
         pwd'''
-        print "/" + "/".join(self.cwd_list)
+        print ("/" + "/".join(self.cwd_list))
 
     def do_get_nodes(self, args):
         '''Get all or a specific node from Ryu OFCTL
@@ -122,7 +122,17 @@ class RYUCmd(cmd.Cmd):
             self.config = nodes
             self._set_cwc()
         except Exception as e:
-            print "Error: %s" % e
+            print ("Error: %s" % e)
+            import traceback
+            traceback.print_exc()
+    def do_get_unis_nodes(self, args):
+        from unis.runtime import Runtime
+
+        try:
+            rt = Runtime()
+            print(rt.nodes)
+        except Exception as e:
+            print ("Error: %s" % e)
             import traceback
             traceback.print_exc()
 
@@ -131,11 +141,11 @@ class RYUCmd(cmd.Cmd):
             if not self.cwd_list[-3] == "tables":
                 raise
         except:
-            print col.FAIL + "Not in a valid table leaf!" + col.ENDC
+            print (col.FAIL + "Not in a valid table leaf!" + col.ENDC)
             return
 
         if not fid:
-            print col.FAIL + "Must specify flow id or '*'" + col.ENDC
+            print (col.FAIL + "Must specify flow id or '*'" + col.ENDC)
             return
 
         table = self.cwd_list[-2]
@@ -146,7 +156,7 @@ class RYUCmd(cmd.Cmd):
                     self.tables[int(table)].delete_flows()
                     self.tables[int(table)].update()
                 except Exception as e:
-                    print "Error deleting flows from table: %s" % e
+                    print ("Error deleting flows from table: %s" % e)
                     return
             else:
                 return
@@ -158,7 +168,7 @@ class RYUCmd(cmd.Cmd):
                     flow.delete()
                     self.tables[int(table)].update()
                 except Exception as e:
-                    print "Error deleting flow: %s" % e
+                    print ("Error deleting flow: %s" % e)
                     return
             else:
                 return
@@ -169,12 +179,12 @@ class RYUCmd(cmd.Cmd):
     def do_add_flow(self, args):
         '''Add a flow, will prompt for user input'''
         if not self.node:
-            print col.FAIL + "No node selected!" + col.ENDC
+            print (col.FAIL + "No node selected!" + col.ENDC)
             return
 
         file_path = self.util.get_string("Input file: ", None)
         if not file_path:
-            print "You must include a json file containing the flow(s)"
+            print ("You must include a json file containing the flow(s)")
             return
         
         try:
@@ -182,11 +192,11 @@ class RYUCmd(cmd.Cmd):
                 raw_json = in_file.read()
                 
             flow_requests = json.loads(raw_json)
-        except IOError, e:
-            print "Could not open file %s" % file_path
+        except IOError as e:
+            print ("Could not open file %s" % file_path)
             return
-        except ValueError, e:
-            print "Invalid json formatting in request"
+        except ValueError as e:
+            print ("Invalid json formatting in request")
             return
 
         if isinstance(flow_requests, list):
@@ -196,11 +206,11 @@ class RYUCmd(cmd.Cmd):
                     flow_id  = flow["id"]
                     table_id = flow["table_id"]
                     self.tables[table_id].put_flow_from_data_json(json.dumps({"flow": flow}), flow_id)
-                except ValueError, e:
-                    print "Flow request did not contain flow or table id"
+                except ValueError as e:
+                    print ("Flow request did not contain flow or table id")
                     return
-                except Exception, e:
-                    print "Error pushing flow: %s" % e
+                except Exception as e:
+                    print ("Error pushing flow: %s" % e)
         else:
             request = flow_requests
             try:
@@ -208,11 +218,11 @@ class RYUCmd(cmd.Cmd):
                 flow_id  = flow["id"]
                 table_id = flow["table_id"]
                 self.tables[table_id].put_flow_from_data_json(json.dumps({"flow": flow}), flow_id)
-            except ValueError, e:
-                print "Flow request did not contain flow or table id"
+            except ValueError as e:
+                print ("Flow request did not contain flow or table id")
                 return
-            except Exception, e:
-                print "Error pushing flow: %s" % e
+            except Exception as e:
+                print ("Error pushing flow: %s" % e)
 
         self.do_update(None)
         self.do_get_nodes(None)
@@ -231,7 +241,7 @@ class RYUCmd(cmd.Cmd):
         '''
         try:
             self.cwc, self.cwd_list = self._conf_for_list()
-            print "OK"
+            print ("OK")
             #self.pp.pprint(self.cwc)
         except ConfigurationError:
             self.cwc = self.config
@@ -303,7 +313,7 @@ def main(args=None):
 """Server: %s
 User  : %s
 Passwd: %s\n""" % (url, user, "*****" if pw != "admin" else pw)
-    print info
+    print (info)
     
     ryuc = RYUCmd(url, user, pw)
     ryuc.cmdloop()
