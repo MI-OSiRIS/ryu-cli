@@ -38,7 +38,6 @@ class RYUCmd(cmd.Cmd):
         self.cwc = self.config
         self.cwd_list = []
         self.ryu = RYUInstance(url, (user, pw)) 
-        self.ryu_qos = RYUQoS(self.ryu)
         self.util = Util()
         self.node = None
         self.table = None
@@ -48,12 +47,6 @@ class RYUCmd(cmd.Cmd):
 
     def emptyline(self):
         pass
-
-    '''
-
-        QoS Commands Start
-
-    '''
 
     def do_get_flows(self, key):
         ''' Gets the flows for a given dpid. Usage: get_flows <dpid>'''
@@ -66,42 +59,28 @@ class RYUCmd(cmd.Cmd):
 
     def do_qos_set_ovsdb(self, params):
         params = params.split(" ")
-
-        if len(params) != 2:
-            print("Incorrect paramets. Requires switch_id and address of ovsdb.")
-
-        switch_key = params[0]   
-        addr = params[1]
-        res = self.ryu_qos.set_ovsdb_address(switch_key, addr)
+        switch_key = params[0]
+        addr = "10.0.3.42:6650"
+        
+        qos = RYUQoS(self.ryu)
+        res = qos.set_ovsdb_address(switch_key, addr)
         
         return
 
     def do_get_qos_nodes(self, params):
-        res = self.ryu_qos.get_qos_nodes()
+        qos = RYUQoS(self.ryu)
+        res = qos.get_qos_nodes()
         return
 
-    def do_qos_status(self, params): 
-        params = params.split(" ")
-        res = self.ryu_qos.qos_queue_stats(params)
+    def do_qos_stats(self, key):
+        try:
+            endpoint = "/v1.0/conf/switches/" + key + "/ovsdb_addr"
+            print("attempting to get " + endpoint)
+            qos_stats = self.ryu.get(endpoint)
+            self.pp.pprint(qos_stats)
+        except:
+            print("Could not grab qos stats")
         return
-
-    def do_create_queue(self, params):
-        params = params.split(" ")
-        res = self.ryu_qos.add_queue(params[0])
-        return
-
-    def do_create_meter(self, params):
-        params = params.split(" ")
-        res = self.ryu_qos.add_meter(params[0])
-
-    def do_create_rule(self, params):
-        params = params.split(" ")
-        res = self.ryu_qos.add_rule(params[0])
-    '''
-
-        QoS Commands End
-
-    ''' 
 
     def do_cd(self, path):
         '''Change the current level of view of the config to be at <key>
