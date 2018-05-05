@@ -15,6 +15,7 @@ Setup for netdev workflow and re-production of Netsys paper.
 - start up this controller in one session of your host. `ryu-manager ryu.app.rest_qos ryu.app.rest_conf_switch --ofp-tcp-listen-port <your controller port> --wsapi-port 8081`. This controller runs the rest api's needed to talk to OVSDB.
 - in another session start the simple switch controller on the other configured controller port to your OVS instance `ryu-manager ryu.app.simple_switch_13 --ofp-tcp-listen-port <your other controller port>`. It is important to keep this switch separate from the api controllers.
 - in another ssh session, you may begin using the ryu-cli
+- I originally developed based on the topology controller in MI-OSIRIS. I set it up to automatically register the switch on start up, but since switching my work flow to use Ryu's build in apps instead you will need to execute this command on start up to tell the controller what ovsdb to talk to `curl -X PUT -d '"tcp:<ip of switch>:<ovsdb port_num>"' http://localhost:8081/v1.0/conf/switches/<dpid of switch>/ovsdb_addr`. It you can see the dpid of the switch in the output of the controller after it connects. Be sure to give the dpid as a hex value. One of my TODOs is to create a separate controller to automate this as the code is already written in a branch of the topo controller.
 
 # Notes on Ryu-Controller
 - for Qos api endpoints you need to make sure that the rest\_qos and rest\_conf\_switch are both configured applications or else their services will not be available even after importing the modules
