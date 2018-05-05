@@ -97,13 +97,6 @@ class RYUCmd(cmd.Cmd):
     def do_create_rule(self, params):
         params = params.split(" ")
         res = self.ryu_qos.add_rule(params[0])
-
-    def do_drop_qos_table(self, params):
-        params = params.split(" ")
-        if len(params) != 2:
-            print("Bad parameters. Usage: drop_qos_table <meter or queue or rules> <switch_id>")
-        else:
-            res = self.ryu_qos.drop_resource(params[0], params[1])
     '''
 
         QoS Commands End

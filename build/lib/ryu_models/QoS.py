@@ -31,9 +31,10 @@ class RYUQoS():
         
         try:
 
-            res_set = self.ryu_instance.put(endpoint, "tcp:" + addr)  
+            res_set = self.ryu_instance.put(endpoint, "tcp:" + addr) 
+            res_test = self.ryu_instance.get(endpoint)
 
-            pprint.pprint("OVSDB Address for switch " + switch_key + " set to - " + res_set)
+            pprint.pprint("OVSDB Address for switch " + switch_key + " set to - " + res_test)
 
             self.ovsdb_address = res_test
         
@@ -107,12 +108,7 @@ class RYUQoS():
                 print("Unable to fetch qos queue's for switch")
 
         return
-    '''
 
-        Add QoS Resources
-        TODO: could probably test against the objects in the QoS instance, but they just get overwritten anyway.
-
-    '''
     def add_queue(self, switch_id):
         
         if switch_id == '':
@@ -187,39 +183,3 @@ class RYUQoS():
 
         return
         
-    '''
-
-        Delete QoS Resources
-        
-        drop methods are for wiping all.
-        should add specific delete methods sometime.
-    '''
-
-    def drop_resource(self, resource, switch_id):
-        print("Params: ", resource, switch_id) 
-        if switch_id == '':
-            print("No switch_id given.")
-            return
-
-        if resource != 'meter' and resource != 'queue' and resource != 'rules':
-            print("Bad resource type..\nUsage: drop <meter or queue or rules> <switch_id>")
-            return
-
-        endpoint = "/qos/"+ resource + "/" + switch_id
-        
-        print("Attempting to drop " + resource + "table from switch " + switch_id)
-
-        try:
-
-            response = self.ryu_instance.delete(endpoint)
-            print("OVS Response: ")
-            pprint.pprint(response)
-
-        except Exception as e:
-
-            print("Unable to drop resource: ", e)
-
-        return
-
-
-

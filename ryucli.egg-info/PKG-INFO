@@ -1,0 +1,13 @@
+Metadata-Version: 1.1
+Name: ryucli
+Version: 0.1
+Summary: Ryu-CommandLine Interface
+Home-page: https://github.com/disprosium8/ryu-cli
+Author: Ezra Kissel
+Author-email: ezkissel@indiana.edu
+License: BSD
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Topic :: Utilities
+Classifier: License :: OSI Approved :: BSD License
